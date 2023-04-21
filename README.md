@@ -11,7 +11,7 @@ If you are are looking to set up the alert bot within your own workspace, follow
 ### 1.1 Configure Slack
 
 * Start creating a new app here [https://api.slack.com/apps].
-* Create on `Create New App`.
+* Click on `Create New App`.
 * Choose `From an App Manifest`.
 * Choose your workspace. This is where the bot will be installed.
 * Use the app manifest below (both JSON and YAML formats). Please note that these are the permissions that we are currently using. You may want to limit what the bot is capable of doing inside your workspace but that might come at the cost of functionality.
