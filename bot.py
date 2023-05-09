@@ -23,6 +23,8 @@ if __name__ == '__main__':
 
             print(f"====================\nIncoming alert of length {len(data)}")
 
+            print(data)	
+
             # Data is a list that can (potentially) have more than 1 element? This is inconsistent with the alert schema
             for instance in data:
                 
@@ -52,8 +54,12 @@ if __name__ == '__main__':
 
                             # Creating the message text
                             message_text = f"Superevent ID: {instance['superevent_id']}\n \
-                            BNS % : {instance['event']['classification']['BNS']}\n \
-                            NSBH % : {instance['event']['classification']['NSBH']}\n \
+                            Event Time: {instance['event']['time']} \n \
+                            Alert Time: {instance['time_created']} \n \
+                            FAR: {instance['event']['far']} \n \
+                            Detectors: {instance['event']['instruments']} \n \
+                            Nature: {instance['event']['classification']} \n \
+                            Properties: {instance['event']['properties']} \n \
                             Join related channel: #{instance['superevent_id'].lower()} \n \
                             Skymap image: {img_link}"
                             
@@ -81,7 +87,18 @@ if __name__ == '__main__':
                             # This is a message without buttons and stuff. We are assuming #alert-bot-test already exists and the bot is added to it
                             try:
                                 print("Trying to send message to general channel...", end='')
-                                response = client.chat_postMessage(channel='#alert-bot-test', text=message_text)
+                                #response = client.chat_postMessage(channel='#alert-bot-test', text=message_text)
+                                response = client.chat_postMessage(
+                                                        channel=f"#alert-bot-test",
+                                                        token = SLACK_TOKEN,
+                                                        blocks = [  {"type": "section", 
+                                                                    "text": {
+                                                                                "type": "mrkdwn", 
+                                                                                "text": message_text
+                                                                                }
+                                                                    },
+                                                        ]
+                                )
                                 print("Done")
                             except SlackApiError as e:
                                 print("\nCould post message. Error: ", e.response["error"])
