@@ -1,6 +1,6 @@
 # GW-Bot
 
-Slack alert bot for `LIGO 04` gravitational wave alerts via Scimma's Hop Skotch. 
+Slack alert bot for `LIGO 04` gravitational wave alerts via Scimma's Hopskotch. 
 
 If you intend on using this bot within the Gravity collective workspace and are looking for feature requests, please open  a new issue. 
 
@@ -97,6 +97,10 @@ settings:
 
 Work in progress....
 
+### 1.4 Set up Hopskotch listener
+
+Work in progress....
+
 ## Known Issues:
 
 * The current alerts are not real. Thus, there is a fair bit of repetition which causes some of the channel-creation and archiving features to fail. We expect this issue to resolve itself when the engineering run begins. 
@@ -111,4 +115,4 @@ Almost all of the code here was written in under 10 hours so there is a lot of w
 
 This bot was created as part of the collaborative efforts of the Gravity collective. 
 
-While a version of this bot is going to be used for the Gravity collective Slack workspace, we acknowledge that different teams will want to customize the alert thresholds and data processing steps based on what they hope to achieve with the alerts. 
+While a version of this bot is going to be used for the Gravity collective Slack workspace, we acknowledge that different teams will want to customize the thresholds and data processing steps based on what they hope to achieve with the alerts. If you do use this project in your work, please acknowledge the developers Ved Shah (vedgs2@illinois.edu), Gautham Narayan (gsn@illinois.edu) and the UIUCSN team.
