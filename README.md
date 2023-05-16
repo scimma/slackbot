@@ -8,7 +8,14 @@ If you are are looking to set up the alert bot within your own workspace, follow
 
 ## 1. Getting started in your own workspace:
 
-### 1.1 Configure Slack
+### 1.1 Set up Hopskotch listener
+
+You can find detailed information about setting up the hop client here:
+
+https://hop-client.readthedocs.io/en/stable/
+
+
+### 1.2 Configure Slack
 
 * Start creating a new app here [https://api.slack.com/apps].
 * Click on `Create New App`.
@@ -87,17 +94,13 @@ settings:
 ```
 
 
-### 1.2 Configure Python 
+### 1.3 Configure Python 
 
 * Create a file named `slack_token.py`. Within this file, store the `Bot User OAuth Token` in a variable called `SLACK_TOKEN`. This token will allow you to interface between python and slack.
 * Use the `env.txt` file to recreate the python environment using conda. This can be done using `conda env create --file env.txt`.
 * Activate the newly created conda environment and run `python bot.py` and you should seeing the alerts as they come in.
 
-### 1.3 Set up via Docker:
-
-Work in progress....
-
-### 1.4 Set up Hopskotch listener
+### 1.4 Set up via Docker (Optional):
 
 Work in progress....
 
