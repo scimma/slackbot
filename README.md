@@ -14,6 +14,8 @@ You can find detailed information about setting up the hop client here:
 
 https://hop-client.readthedocs.io/en/stable/
 
+Specifically, https://hop-client.readthedocs.io/en/stable/user/quickstart.html#using-the-cli might be useful if you are interested in subscribing to certain topics. 
+
 
 ### 1.2 Configure Slack
 
