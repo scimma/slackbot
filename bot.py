@@ -53,15 +53,17 @@ if __name__ == '__main__':
 
 
                             # Creating the message text
-                            message_text = f"Superevent ID: {instance['superevent_id']}\n \
-                            Event Time: {instance['event']['time']} \n \
-                            Alert Time: {instance['time_created']} \n \
-                            FAR: {instance['event']['far']} \n \
-                            Detectors: {instance['event']['instruments']} \n \
-                            Nature: {instance['event']['classification']} \n \
-                            Properties: {instance['event']['properties']} \n \
-                            Join related channel: #{instance['superevent_id'].lower()} \n \
-                            Skymap image: {img_link}"
+                            message_text = f"""
+Superevent ID: {instance['superevent_id']}
+Event Time: {instance['event']['time']} 
+Alert Time: {instance['time_created']}
+FAR: {instance['event']['far']} 
+Detectors: {instance['event']['instruments']} 
+Nature: {instance['event']['classification']} 
+Properties: {instance['event']['properties']}
+Join related channel: #{instance['superevent_id'].lower()} 
+Skymap image: {img_link}
+                            """
                             
                             # This creates a new slack channel for the alert
                             try:
@@ -91,7 +93,7 @@ if __name__ == '__main__':
                                 response = client.chat_postMessage(
                                                         channel=f"#alert-bot-test",
                                                         token = SLACK_TOKEN,
-                                                        blocks = [  {"type": "section", 
+                                                        blocks = [  {
                                                                     "text": {
                                                                                 "type": "mrkdwn", 
                                                                                 "text": message_text
@@ -176,4 +178,3 @@ if __name__ == '__main__':
                         print("\nCould post message. Error: ", e.response["error"])
 
                     
-
