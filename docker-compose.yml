@@ -1,0 +1,5 @@
+services:
+  gw_hop_slackbot:
+    build: .
+    restart: always
+

@@ -1,8 +1,13 @@
-FROM continuumio/miniconda3
+FROM python:3.10
 
 WORKDIR /app
 
-COPY env.txt .
+COPY requirements.txt .
 
-RUN conda env create --file env.txt --name gw_bot_env
+RUN pip3 install -r requirements.txt
 
+COPY auth.toml /app
+
+COPY *.py /app
+
+CMD ["python","bot.py"]

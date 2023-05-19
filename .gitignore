@@ -2,3 +2,4 @@ slack_token.py
 test.py
 __pycache__/
 .DS_Store
+auth.toml

@@ -3,11 +3,14 @@ from hop.io import StartPosition
 from slack import WebClient
 from slack_sdk.errors import SlackApiError
 
-from slack_token import SLACK_TOKEN
+from slack_token import SLACK_TOKEN, hop_username, hop_pw
 
 # Uncomment this line to get old alerts. The formatting for these can be rough so be careful.
 
-# stream = Stream(start_at=StartPosition.EARLIEST)
+from hop.auth import Auth
+
+auth = Auth(hop_username, hop_pw)
+stream = Stream(auth=auth)
 
 if __name__ == '__main__':
 
