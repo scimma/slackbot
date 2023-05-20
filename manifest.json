@@ -1,0 +1,34 @@
+{
+    "display_information": {
+        "name": "LIGO-Alert-Bot"
+    },
+    "features": {
+        "bot_user": {
+            "display_name": "LIGO-Alert-Bot",
+            "always_online": false
+        }
+    },
+    "oauth_config": {
+        "scopes": {
+            "bot": [
+                "calls:read",
+                "channels:join",
+                "channels:manage",
+                "chat:write",
+                "chat:write.customize",
+                "commands",
+                "files:write",
+                "groups:write",
+                "im:write",
+                "mpim:write",
+                "channels:read",
+                "groups:read"
+            ]
+        }
+    },
+    "settings": {
+        "org_deploy_enabled": false,
+        "socket_mode_enabled": false,
+        "token_rotation_enabled": false
+    }
+}

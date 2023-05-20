@@ -29,71 +29,8 @@ Specifically, https://hop-client.readthedocs.io/en/stable/user/quickstart.html#u
 * You will now see a `Bot User OAuth Token`. This is what you can use within python to access the api. 
 
 #### App manifests:
-```YAML
-display_information:
-  name: LIGO-Alert-Bot
-features:
-  bot_user:
-    display_name: LIGO-Alert-Bot
-    always_online: false
-oauth_config:
-  scopes:
-    bot:
-      - calls:read
-      - channels:join
-      - channels:manage
-      - chat:write
-      - chat:write.customize
-      - commands
-      - files:write
-      - groups:write
-      - im:write
-      - mpim:write
-      - channels:read
-      - groups:read
-settings:
-  org_deploy_enabled: false
-  socket_mode_enabled: false
-  token_rotation_enabled: false
 
-```
-
-```JSON
-{
-    "display_information": {
-        "name": "LIGO-Alert-Bot"
-    },
-    "features": {
-        "bot_user": {
-            "display_name": "LIGO-Alert-Bot",
-            "always_online": false
-        }
-    },
-    "oauth_config": {
-        "scopes": {
-            "bot": [
-                "calls:read",
-                "channels:join",
-                "channels:manage",
-                "chat:write",
-                "chat:write.customize",
-                "commands",
-                "files:write",
-                "groups:write",
-                "im:write",
-                "mpim:write",
-                "channels:read",
-                "groups:read"
-            ]
-        }
-    },
-    "settings": {
-        "org_deploy_enabled": false,
-        "socket_mode_enabled": false,
-        "token_rotation_enabled": false
-    }
-}
-```
+Use either `manifest.yml` or `manifest.json` to create the app in slack. Be sure to change the name of the app as you see fit. 
 
 
 ### 1.3 Configure Python 
@@ -116,6 +53,12 @@ Rebuild and restart:
 If you need to stop the service, use:
 
 `docker compose down`
+
+For monitoring, use:
+
+`docker compose ps`
+
+`docker compose logs -f`
 
 ## Known Issues:
 
