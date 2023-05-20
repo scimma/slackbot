@@ -98,19 +98,28 @@ settings:
 
 ### 1.3 Configure Python 
 
-* Create a file named `slack_token.py`. Within this file, store the `Bot User OAuth Token` in a variable called `SLACK_TOKEN`. This token will allow you to interface between python and slack.
-* Use the `env.txt` file to recreate the python environment using conda. This can be done using `conda env create --file env.txt`.
-* Activate the newly created conda environment and run `python bot.py` and you should seeing the alerts as they come in.
+* Create a file named `slack_token.py`. Within this file, store the `Bot User OAuth Token` in a variable called `SLACK_TOKEN`. This token will allow you to interface between python and slack. The hop client authentication (`hop_username` and `hop_pw`) should also be added to this file. 
+
+* Use `requirements.txt` to install the relevant dependancies to your environment.
+* Run `python bot.py` and you should seeing the alerts as they come in.
 
 ### 1.4 Set up via Docker (Optional):
 
-Work in progress....
+Both the `Dockerfile` and `docker-compose.yml` files have been provided if you want to build the slack bot as a Docker app.
+
+Rebuild and restart:
+
+`docker compose build`
+
+`docker compose up -d`
+
+If you need to stop the service, use:
+
+`docker compose down`
 
 ## Known Issues:
 
-* The current alerts are not real. Thus, there is a fair bit of repetition which causes some of the channel-creation and archiving features to fail. We expect this issue to resolve itself when the engineering run begins. 
-
-* Archiving channels after a retraction is very slow right now and will get slower as the number of channels in a workspace increases (due to linear search). Slack does not currently have api's (that I could find) that can do this efficiently (O(1)) so we might have to build something on our own. Once again, this depends on having relatively consistent data formatting (like `PRELIMINARY` alerts for any `superevent id` coming in before `RETRACTION` alerts). We hope to iron this out during the engineering run.
+* [CURRENTLY DISABLED] Archiving channels after a retraction is very slow right now and will get slower as the number of channels in a workspace increases (due to linear search). Slack does not currently have api's (that I could find) that can do this efficiently (O(1)) so we might have to build something on our own. Once again, this depends on having relatively consistent data formatting (like `PRELIMINARY` alerts for any `superevent id` coming in before `RETRACTION` alerts). We hope to iron this out during the engineering run.
 
 ## Contributing:
 
