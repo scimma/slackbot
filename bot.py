@@ -1,3 +1,5 @@
+import logging
+
 from hop import stream, Stream
 from hop.io import StartPosition
 from hop.auth import Auth
@@ -6,6 +8,8 @@ from slack_sdk.errors import SlackApiError
 
 from slack_token import SLACK_TOKEN, hop_username, hop_pw
 
+logging.getLogger().setLevel(logging.INFO)
+
 auth = Auth(hop_username, hop_pw)
 stream = Stream(auth=auth)
 
@@ -13,7 +17,7 @@ if __name__ == '__main__':
 
     with stream.open("kafka://kafka.scimma.org/igwn.gwalert", "r") as s:
 
-        print("Hop Skotch stream open. Creating Slack client...")
+        logging.info("Hop Skotch stream open. Creating Slack client...")
         client = WebClient(token=SLACK_TOKEN)
 
         for message in s:
@@ -21,7 +25,7 @@ if __name__ == '__main__':
             # Schema for data available at https://emfollow.docs.ligo.org/userguide/content.html#kafka-notice-gcn-scimma
             data = message.content
 
-            print(f"====================\nIncoming alert of length {len(data)}")
+            logging.info(f"====================\nIncoming alert of length {len(data)}")
 
             # Data is a list that can (potentially) have more than 1 element? This is inconsistent with the alert schema
             for instance in data:
@@ -30,7 +34,7 @@ if __name__ == '__main__':
                 if instance['superevent_id'][0] == 'S' or instance['superevent_id'][0] == 's':
                     
                     # Printing out the alert type and event id to std out
-                    print(f"{instance['alert_type']}: {instance['superevent_id']}")
+                    logging.info(f"{instance['alert_type']}: {instance['superevent_id']}")
                     new_channel_name = instance['superevent_id'].lower()
 
 
@@ -69,14 +73,14 @@ Skymap image: {img_link}
                             
                             # This creates a new slack channel for the alert
                             try:
-                                print("Trying to create a new channel...", end='')
+                                logging.info("Trying to create a new channel...", end='')
                                 response = client.conversations_create(name=new_channel_name, token = SLACK_TOKEN)
-                                print("Done")
+                                logging.info("Done")
                             except SlackApiError as e:
                                 if e.response["error"] == "name_taken":
-                                    print("Done")
+                                    logging.info("Done")
                                 else:
-                                    print("\nCould not create new channel. Error: ", e.response["error"])
+                                    logging.warning("\nCould not create new channel. Error: ", e.response["error"])
 
 
                             # # This gets the bot to join the channel
@@ -90,7 +94,7 @@ Skymap image: {img_link}
 
                             # This is a message without buttons and stuff. We are assuming #alert-bot-test already exists and the bot is added to it
                             try:
-                                print("Trying to send message to general channel...", end='')
+                                logging.info("Trying to send message to general channel...", end='')
                                 #response = client.chat_postMessage(channel='#alert-bot-test', text=message_text)
                                 response = client.chat_postMessage(
                                                         channel=f"#bot-alerts",
@@ -103,15 +107,15 @@ Skymap image: {img_link}
                                                                     },
                                                         ]
                                 )
-                                print("Done")
+                                logging.info("Done")
                             except SlackApiError as e:
-                                print("\nCould post message. Error: ", e.response["error"])
+                                logging.warning("\nCould post message. Error: ", e.response["error"])
 
 
                             
                             # This is a message with buttons and stuff to the new channel
                             try:
-                                print("Trying to send message to event channel...",end='')
+                                logging.info("Trying to send message to event channel...",end='')
                                 response = client.chat_postMessage(
                                                         channel=f"#{new_channel_name}",
                                                         token = SLACK_TOKEN,
@@ -140,12 +144,12 @@ Skymap image: {img_link}
                                                                     
                                                                 ]
                                                         )
-                                print("Done")
+                                logging.info("Done")
                             except SlackApiError as e:
-                                print("\nCould post message. Error: ", e.response["error"])
+                                logging.warning("\nCould post message. Error: ", e.response["error"])
                     
                         except KeyError:
-                            print('Bad data formatting...skipping message')
+                            logging.warning('Bad data formatting...skipping message')
                             
 
                     # RETRACTION
@@ -173,10 +177,10 @@ Skymap image: {img_link}
                         #         print("\nCould not find channel id. Error: ", e.response["error"])
 
                         try:
-                            print(f"Trying to send message to {new_channel_name} channel...", end='')
+                            logging.info(f"Trying to send message to {new_channel_name} channel...", end='')
                             response = client.chat_postMessage(channel=f'#{new_channel_name}', text="This alert was retracted.")
-                            print("Done")
+                            logging.info("Done")
                         except SlackApiError as e:
-                            print("\nCould post message. Error: ", e.response["error"])
+                            logging.warning("\nCould post message. Error: ", e.response["error"])
 
                     
