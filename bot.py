@@ -73,14 +73,14 @@ Skymap image: {img_link}
                             
                             # This creates a new slack channel for the alert
                             try:
-                                logging.info("Trying to create a new channel...", end='')
+                                logging.info("Trying to create a new channel...")
                                 response = client.conversations_create(name=new_channel_name, token = SLACK_TOKEN)
                                 logging.info("Done")
                             except SlackApiError as e:
                                 if e.response["error"] == "name_taken":
                                     logging.info("Done")
                                 else:
-                                    logging.warning("\nCould not create new channel. Error: ", e.response["error"])
+                                    logging.warning("Could not create new channel. Error: ", e.response["error"])
 
 
                             # # This gets the bot to join the channel
@@ -94,7 +94,7 @@ Skymap image: {img_link}
 
                             # This is a message without buttons and stuff. We are assuming #alert-bot-test already exists and the bot is added to it
                             try:
-                                logging.info("Trying to send message to general channel...", end='')
+                                logging.info("Trying to send message to general channel...")
                                 #response = client.chat_postMessage(channel='#alert-bot-test', text=message_text)
                                 response = client.chat_postMessage(
                                                         channel=f"#bot-alerts",
@@ -109,13 +109,13 @@ Skymap image: {img_link}
                                 )
                                 logging.info("Done")
                             except SlackApiError as e:
-                                logging.warning("\nCould post message. Error: ", e.response["error"])
+                                logging.warning("Could post message. Error: ", e.response["error"])
 
 
                             
                             # This is a message with buttons and stuff to the new channel
                             try:
-                                logging.info("Trying to send message to event channel...",end='')
+                                logging.info("Trying to send message to event channel...")
                                 response = client.chat_postMessage(
                                                         channel=f"#{new_channel_name}",
                                                         token = SLACK_TOKEN,
@@ -146,7 +146,7 @@ Skymap image: {img_link}
                                                         )
                                 logging.info("Done")
                             except SlackApiError as e:
-                                logging.warning("\nCould post message. Error: ", e.response["error"])
+                                logging.warning("Could post message. Error: ", e.response["error"])
                     
                         except KeyError:
                             logging.warning('Bad data formatting...skipping message')
@@ -177,10 +177,10 @@ Skymap image: {img_link}
                         #         print("\nCould not find channel id. Error: ", e.response["error"])
 
                         try:
-                            logging.info(f"Trying to send message to {new_channel_name} channel...", end='')
+                            logging.info(f"Trying to send message to {new_channel_name} channel...")
                             response = client.chat_postMessage(channel=f'#{new_channel_name}', text="This alert was retracted.")
                             logging.info("Done")
                         except SlackApiError as e:
-                            logging.warning("\nCould post message. Error: ", e.response["error"])
+                            logging.warning("Could post message. Error: ", e.response["error"])
 
                     
