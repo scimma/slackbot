@@ -1,13 +1,10 @@
 from hop import stream, Stream
 from hop.io import StartPosition
+from hop.auth import Auth
 from slack import WebClient
 from slack_sdk.errors import SlackApiError
 
 from slack_token import SLACK_TOKEN, hop_username, hop_pw
-
-# Uncomment this line to get old alerts. The formatting for these can be rough so be careful.
-
-from hop.auth import Auth
 
 auth = Auth(hop_username, hop_pw)
 stream = Stream(auth=auth)
@@ -26,25 +23,21 @@ if __name__ == '__main__':
 
             print(f"====================\nIncoming alert of length {len(data)}")
 
-            print(data)	
-
             # Data is a list that can (potentially) have more than 1 element? This is inconsistent with the alert schema
             for instance in data:
-                
-                # Printing out the alert type and event id to std out
-                print(f"{instance['alert_type']}: {instance['superevent_id']}")
-                new_channel_name = instance['superevent_id'].lower()
+
+                # Events starting with S are real and MS are fake/test.
+                if instance['superevent_id'][0] == 'S' or instance['superevent_id'][0] == 's':
+                    
+                    # Printing out the alert type and event id to std out
+                    print(f"{instance['alert_type']}: {instance['superevent_id']}")
+                    new_channel_name = instance['superevent_id'].lower()
 
 
-                if instance["alert_type"] != "RETRACTION":
+                    if instance["alert_type"] != "RETRACTION":
 
-                    try:
-                        
-                        # Setting some preliminary thresholds so that the channel does not get flooded with bad alerts. Adapt based on needs
-                        if instance['event']['classification']['BNS'] > 0.3:
-
-
-
+                        try:
+                            
                             ########
 
                             #TODO: Whatever processing you want. Make plots, run analysis, classify event, call other api's etc
@@ -57,15 +50,21 @@ if __name__ == '__main__':
 
                             # Creating the message text
                             message_text = f"""
+Alert Type: {instance["alert_type"]}
 Superevent ID: {instance['superevent_id']}
 Event Time: {instance['event']['time']} 
 Alert Time: {instance['time_created']}
 FAR: {instance['event']['far']} 
 Detectors: {instance['event']['instruments']} 
-Nature: {instance['event']['classification']} 
-Properties: {instance['event']['properties']}
+BNS % : {instance['event']['classification']['BNS']:.3f}
+NSBH % : {instance['event']['classification']['NSBH']:.3f} 
+BBH % : {instance['event']['classification']['BBH']:.3f} 
+Has NS: {instance['event']['properties']['HasNS']:.3f}
+Has Remnant: {instance['event']['properties']['HasRemnant']:.3f}
+Has Mass Gap: {instance['event']['properties']['HasMassGap']:.3f}
 Join related channel: #{instance['superevent_id'].lower()} 
 Skymap image: {img_link}
+[Cite: ](https://github.com/scimma/slackbot)
                             """
                             
                             # This creates a new slack channel for the alert
@@ -94,7 +93,7 @@ Skymap image: {img_link}
                                 print("Trying to send message to general channel...", end='')
                                 #response = client.chat_postMessage(channel='#alert-bot-test', text=message_text)
                                 response = client.chat_postMessage(
-                                                        channel=f"#alert-bot-test",
+                                                        channel=f"#bot-alerts",
                                                         token = SLACK_TOKEN,
                                                         blocks = [  {
                                                                     "text": {
@@ -144,40 +143,40 @@ Skymap image: {img_link}
                                 print("Done")
                             except SlackApiError as e:
                                 print("\nCould post message. Error: ", e.response["error"])
-                
-                    except KeyError:
-                        print('Bad data formatting...skipping message')
-                        
+                    
+                        except KeyError:
+                            print('Bad data formatting...skipping message')
+                            
 
-                # RETRACTION
-                else: 
+                    # RETRACTION
+                    else: 
 
-                    """ 
-                    This should archives the channel. Current method -> get list of all channels -> find id for channel name -> call archive function
-                    Issue - Linear time operation in the number for channels in the workspace. We wan to avoid this. I do not have a good solution yet.
-                    One possible idea is to store a hash map from super event id to channel id on our end but that does not work with dummy alerts. It
-                    might work engineering run onwards. 
-                    """
-                    # TODO: Find O(1) method to archive channels. For now I am just sending a message that event was RETRACTED.
+                        """ 
+                        This should archives the channel. Current method -> get list of all channels -> find id for channel name -> call archive function
+                        Issue - Linear time operation in the number for channels in the workspace. We wan to avoid this. I do not have a good solution yet.
+                        One possible idea is to store a hash map from super event id to channel id on our end but that does not work with dummy alerts. It
+                        might work engineering run onwards. 
+                        """
+                        # TODO: Find O(1) method to archive channels. For now I am just sending a message that event was RETRACTED.
 
-                    # try:
-                    #     print(f"{instance['superevent_id']} was retracted. Trying to archive related channel id", end = "")
-                    #     temp = "#MS230317q".lower()
-                    #     channel_id = client.conversations_info(channel=temp, token=SLACK_TOKEN)['channel']['id']
-                    #     print(channel_id)
-                    #     try:
-                    #         response  = client.conversations_archive(channel=temp)
-                    #         print("Done")
-                    #     except SlackApiError as e:
-                    #         print("\nCould not archive channel. Error: ", e.response, response)
-                    # except SlackApiError as e:
-                    #         print("\nCould not find channel id. Error: ", e.response["error"])
+                        # try:
+                        #     print(f"{instance['superevent_id']} was retracted. Trying to archive related channel id", end = "")
+                        #     temp = "#MS230317q".lower()
+                        #     channel_id = client.conversations_info(channel=temp, token=SLACK_TOKEN)['channel']['id']
+                        #     print(channel_id)
+                        #     try:
+                        #         response  = client.conversations_archive(channel=temp)
+                        #         print("Done")
+                        #     except SlackApiError as e:
+                        #         print("\nCould not archive channel. Error: ", e.response, response)
+                        # except SlackApiError as e:
+                        #         print("\nCould not find channel id. Error: ", e.response["error"])
 
-                    try:
-                        print(f"Trying to send message to {new_channel_name} channel...", end='')
-                        response = client.chat_postMessage(channel=f'#{new_channel_name}', text="This alert was retracted.")
-                        print("Done")
-                    except SlackApiError as e:
-                        print("\nCould post message. Error: ", e.response["error"])
+                        try:
+                            print(f"Trying to send message to {new_channel_name} channel...", end='')
+                            response = client.chat_postMessage(channel=f'#{new_channel_name}', text="This alert was retracted.")
+                            print("Done")
+                        except SlackApiError as e:
+                            print("\nCould post message. Error: ", e.response["error"])
 
                     
