@@ -68,7 +68,6 @@ Has Remnant: {instance['event']['properties']['HasRemnant']:.3f}
 Has Mass Gap: {instance['event']['properties']['HasMassGap']:.3f}
 Join related channel: #{instance['superevent_id'].lower()} 
 Skymap image: {img_link}
-[Cite: ](https://github.com/scimma/slackbot)
                             """
                             
                             # This creates a new slack channel for the alert
