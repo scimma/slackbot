@@ -9,3 +9,5 @@ RUN pip3 install -r requirements.txt
 COPY *.py /app
 
 CMD ["python","bot.py"]
+
+ENV PYTHONUNBUFFERED=1
