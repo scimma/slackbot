@@ -60,9 +60,9 @@ Event Time: {instance['event']['time']}
 Alert Time: {instance['time_created']}
 FAR: {instance['event']['far']} 
 Detectors: {instance['event']['instruments']} 
-BNS % : {instance['event']['classification']['BNS']:.3f}
-NSBH % : {instance['event']['classification']['NSBH']:.3f} 
-BBH % : {instance['event']['classification']['BBH']:.3f} 
+BNS: {instance['event']['classification']['BNS']:.3f}
+NSBH: {instance['event']['classification']['NSBH']:.3f} 
+BBH: {instance['event']['classification']['BBH']:.3f} 
 Has NS: {instance['event']['properties']['HasNS']:.3f}
 Has Remnant: {instance['event']['properties']['HasRemnant']:.3f}
 Has Mass Gap: {instance['event']['properties']['HasMassGap']:.3f}
@@ -98,13 +98,13 @@ Skymap image: {img_link}
                                 response = client.chat_postMessage(
                                                         channel=f"#bot-alerts",
                                                         token = SLACK_TOKEN,
-                                                        blocks = [  {
+                                                        blocks = [  {"type": "section", 
                                                                     "text": {
                                                                                 "type": "mrkdwn", 
                                                                                 "text": message_text
                                                                                 }
-                                                                    },
-                                                        ]
+                                                                    } 
+                                                                ]
                                 )
                                 logging.info("Done")
                             except SlackApiError as e:
