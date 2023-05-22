@@ -25,13 +25,13 @@ if __name__ == '__main__':
             # Schema for data available at https://emfollow.docs.ligo.org/userguide/content.html#kafka-notice-gcn-scimma
             data = message.content
 
-            logging.info(f"====================\nIncoming alert of length {len(data)}")
-
             # Data is a list that can (potentially) have more than 1 element? This is inconsistent with the alert schema
             for instance in data:
 
                 # Events starting with S are real and MS are fake/test.
                 if instance['superevent_id'][0] == 'S' or instance['superevent_id'][0] == 's':
+
+                    logging.info(f"====================\nIncoming alert of length {len(data)}:")
                     
                     # Printing out the alert type and event id to std out
                     logging.info(f"{instance['alert_type']}: {instance['superevent_id']}")
