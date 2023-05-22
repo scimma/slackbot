@@ -123,22 +123,6 @@ Skymap image: {img_link}
                                                                                 "type": "mrkdwn", 
                                                                                 "text": message_text
                                                                                 }
-                                                                    },
-                                                                    {
-                                                                        "type": "actions",
-                                                                        "block_id": "actions1",
-                                                                        "elements": 
-                                                                        [
-                                                                            {
-                                                                                "type": "button",
-                                                                                "text": {
-                                                                                    "type": "plain_text",
-                                                                                    "text": f"Some {instance['superevent_id']} related action"
-                                                                                },
-                                                                                "value": "cancel",
-                                                                                "action_id": "button_1"
-                                                                            }
-                                                                        ]
                                                                     }
                                                                     
                                                                 ]
