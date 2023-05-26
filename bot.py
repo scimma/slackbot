@@ -67,7 +67,7 @@ if __name__ == '__main__':
                     # RETRACTION
                     else: 
                         
-                        send_message_to_channel(client, SLACK_TOKEN, event_channel, retraction_message)
+                        send_message_to_channel(client, event_channel, retraction_message)
 
 
                     
