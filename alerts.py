@@ -1,45 +1,154 @@
 import healpy as hp
+import matplotlib.pyplot as plt
 
-class Alerts():
+class Alert():
 
-    def __init__(self, instance, ignore_fits = True):
+    def __init__(self, instance, ignore_skymap = False):
 
-        self.instance = instance
+        # Parsing the incoming Kafka notice
+        self.parse_instance(instance, ignore_skymap)
 
-        self.alert_type = instance['alert_type']
-
-        self.superevent_id = instance['superevent_id']
+        # Events starting with S are real and MS are fake/test.
         if self.superevent_id[0] == 'S':
             self.is_real = True
         else:
             self.is_real = False
 
-        self.event_time = instance['event']['time']
-        self.alert_time = instance['time_created']
+        self.num_instruments = len(self.instruments)
 
-        self.FAR = instance['event']['far']
-        self.significant = instance['event']['significant']
+    def parse_instance(self, instance, ignore_skymap = False):
 
-        self.detectors = instance['event']['instruments']
-        self.num_detectors = len(self.detectors)
+        # Parsed according to the schema here: https://emfollow.docs.ligo.org/userguide/content.html#kafka-notice-gcn-scimma
+        self.instance = instance
 
-        self.bns = instance['event']['classification']['BNS']
-        self.nsbh = instance['event']['classification']['NSBH']
-        self.bbh = instance['event']['classification']['BBH']
+        self.alert_type = instance['alert_type']
+        self.superevent_id = instance['superevent_id']
+        self.time_created = instance['time_created']
+        self.gracedb_url = instance['urls']['gracedb']
 
-        self.has_ns = instance['event']['properties']['HasNS']
-        self.has_remnant = instance['event']['properties']['HasRemnant']
-        self.has_mass_gap = instance['event']['properties']['HasMassGap']
+        self.slack_channel = self.superevent_id.lower()
+        self.skymap_img_url = f"https://gracedb.ligo.org/apiweb/superevents/{self.superevent_id}/files/bayestar.png"
 
-        # Disable if the fits file is not going to be used
-        if ignore_fits == False:
+        if self.alert_type != "RETRACTION":
 
-            binary_data = instance['event']['skymap']
-            skymap, skymap_header = hp.read_map(binary_data, h=True, verbose=False)
+            self.is_retraction = False
+
+            self.event_time = instance['event']['time']
+            self.FAR = instance['event']['far']
+            self.significant = instance['event']['significant']
+            self.instruments = instance['event']['instruments']
+            self.search = instance['event']['search']
+            self.group = instance['event']['group']
+
+            if self.group  == "CBC":
+
+                self.pipeline = instance['event']['pipeline']
+
+                # Only available for Burst
+                self.duration = None
+                self.central_frequency = None
+
+                # Only available for CBC
+                self.has_ns = instance['event']['properties']['HasNS']
+                self.has_remnant = instance['event']['properties']['HasRemnant']
+                self.has_mass_gap = instance['event']['properties']['HasMassGap']
+
+                # Only available for CBC
+                self.bns = instance['event']['classification']['BNS']
+                self.nsbh = instance['event']['classification']['NSBH']
+                self.bbh = instance['event']['classification']['BBH']
+                self.noise = instance['event']['classification']['Terrestrial']
+                
+            else:
+
+                self.pipeline = instance['event']['pipeline']
+
+                # Only available for Burst
+                self.duration = instance['event']['duration']
+                self.central_frequency = instance['event']['central_frequency']
+
+                # Only available for CBC
+                self.has_ns = None
+                self.has_remnant = None
+                self.has_mass_gap = None
+
+                # Only available for CBC
+                self.bns = None
+                self.nsbh = None
+                self.bbh = None
+                self.noise = None
+
+            # Disable if the fits file is not going to be used
+            if ignore_skymap == False:
+
+                binary_data = instance['event']['skymap']
+                skymap, skymap_header = hp.read_map(binary_data, h=True, verbose=False)
+                
+                self.skymap_header = dict(skymap_header)
+                self.skymap = skymap
+        else: 
+            self.is_retraction = True
+
+        # TODO: Parse the external_coinc data...
+
+    def passes_GCW_general_cut(self):
+
+        if self.num_instruments >= 2 and (self.nsbh > 0 or self.bns > 0) and self.group == "CBC":
+            return True
+        else:
+            return False
+    
+    def get_GCW_retraction_message(self):
+        
+        message = "This alert was retracted."
+        return message
+
+    def get_GCW_detailed_message(self):
+
+        message_text = f"""
+Alert Type: {self.alert_type}
+Superevent ID: {self.superevent_id}
+Event Time: {self.event_time} 
+Alert Time: {self.time_created}
+FAR: {self.FAR} 
+Detectors: {self.instruments} 
+BNS: {self.bns:.3f}
+NSBH: {self.nsbh:.3f} 
+BBH: {self.bbh:.3f} 
+Has NS: {self.has_ns:.3f}
+Has Remnant: {self.has_remnant:.3f}
+Has Mass Gap: {self.has_mass_gap:.3f}
+Join related channel: #{self.slack_channel} 
+Skymap image: {self.skymap_img_url}
+        """
+        return message_text
+    
+    
+if __name__=="__main__":
+
+    from slack_token import SLACK_TOKEN, hop_username, hop_pw
+    from hop import stream, Stream
+    from hop.io import StartPosition
+    from hop.auth import Auth
+
+    # You might have to authorize here
+    ## auth = Auth(hop_username, hop_pw)
+    stream = Stream()
+
+    with stream.open("kafka://kafka.scimma.org/igwn.gwalert", "r") as s:
+
+        for message in s:
             
-            self.skymap_header = dict(skymap_header)
-            self.skymap = skymap
+            # Schema for data available at https://emfollow.docs.ligo.org/userguide/content.html#kafka-notice-gcn-scimma
+            data = message.content
 
-    def passes_GWC_general_cut(self):
+            # Data is a list that can (potentially) have more than 1 element? This is inconsistent with the alert schema
+            for instance in data:
+                
+                temp = Alert(instance, ignore_skymap=True)
+                print(temp.instance)
+                # print(temp.skymap_header)
+                # hp.mollview(temp.skymap)
+                # plt.show()
 
-        return True
+

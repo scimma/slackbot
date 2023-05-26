@@ -62,7 +62,18 @@ For monitoring, use:
 
 ## Known Issues:
 
-* [CURRENTLY DISABLED] Archiving channels after a retraction is very slow right now and will get slower as the number of channels in a workspace increases (due to linear search). Slack does not currently have api's (that I could find) that can do this efficiently (O(1)) so we might have to build something on our own. Once again, this depends on having relatively consistent data formatting (like `PRELIMINARY` alerts for any `superevent id` coming in before `RETRACTION` alerts). We hope to iron this out during the engineering run.
+* DUPLICATES !!!
+
+HOPSKOTCH allows for “at least once” delivery semantics [https://scimma.org/hopskotch.html]. While this is great for not missing alerts, our bot send a message for every alert it receives leading to duplicates. Solving that would be too easy so Slack has its own bug to complicate matters [https://github.com/slackapi/bolt-python/issues/764]. I am going to try to address this issues ASAP since it is cluttering the channel with unnecessary messages.
+
+* [CURRENTLY DISABLED] ARCHIVING CHANNELS
+
+Archiving channels after a retraction is very slow right now and will get slower as the number of channels in a workspace increases (due to linear search). Slack does not currently have api's (that I could find) that can do this efficiently (O(1)) so we might have to build something on our own. Once again, this depends on having relatively consistent data formatting (like `PRELIMINARY` alerts for any `superevent id` coming in before `RETRACTION` alerts). 
+For now, I am just sending the RETRACTION alerts to the respective channels.
+
+Current method -> get list of all channels -> find id for channel name -> call archive function
+Issue - Linear time operation in the number for channels in the workspace. We wan to avoid this. I do not have a good solution yet. One possible idea is to store a hash map from super event id to channel id on our end but that does not work with dummy alerts. It might work engineering run onwards. 
+
 
 ## Contributing:
 
