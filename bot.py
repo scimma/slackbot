@@ -45,7 +45,6 @@ if __name__ == '__main__':
                             # TODO:  Whatever processing you want. Make plots, run analysis, classify event, call other api's etc
 
                             message_text = alert.get_GCW_detailed_message
-                            retraction_message = alert.get_GCW_retraction_message
                             event_channel = alert.slack_channel
                             general_channel = "bot-alerts"
 
@@ -67,6 +66,7 @@ if __name__ == '__main__':
                     # RETRACTION
                     else: 
                         
+                        retraction_message = alert.get_GCW_retraction_message
                         send_message_to_channel(client, event_channel, retraction_message)
 
 
