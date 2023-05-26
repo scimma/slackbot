@@ -14,8 +14,6 @@ class Alert():
         else:
             self.is_real = False
 
-        self.num_instruments = len(self.instruments)
-
     def parse_instance(self, instance, ignore_skymap = True):
 
         # Parsed according to the schema here: 
@@ -38,6 +36,7 @@ class Alert():
             self.FAR = instance['event']['far']
             self.significant = instance['event']['significant']
             self.instruments = instance['event']['instruments']
+            self.num_instruments = len(self.instruments)
             self.search = instance['event']['search']
             self.group = instance['event']['group']
 

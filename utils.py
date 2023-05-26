@@ -1,12 +1,11 @@
 import logging
-from slack import WebClient
 from slack_sdk.errors import SlackApiError
 
 def send_message_to_channel(client, token, channel, text):
+
+    logging.info(f"Trying to send message to {channel} channel...")
     # This is a message without buttons and stuff. We are assuming #alert-bot-test already exists and the bot is added to it
     try:
-        logging.info("Trying to send message to general channel...")
-
         response = client.chat_postMessage(
                                 channel=channel,
                                 token = token,
@@ -23,7 +22,8 @@ def send_message_to_channel(client, token, channel, text):
         logging.warning("Could post message. Error: ", e.response["error"])
 
 def create_new_channel(client, token, channel_name):
-
+    
+    logging.info(f"Trying to create a new channel: {channel_name}...")
     try:
 
         logging.info("Trying to create a new channel...")

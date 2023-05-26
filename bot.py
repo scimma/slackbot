@@ -3,6 +3,7 @@ import logging
 from hop import stream, Stream
 from hop.io import StartPosition
 from hop.auth import Auth
+from slack import WebClient
 
 from alerts import Alert
 from slack_token import SLACK_TOKEN, hop_username, hop_pw
@@ -51,26 +52,21 @@ if __name__ == '__main__':
                             ########
                             
                             # This creates a new slack channel for the alert
-                            logging.info("Trying to create a new channel...")
                             create_new_channel(client, SLACK_TOKEN, event_channel)
 
-                            # This is a message without buttons and stuff. We are assuming #alert-bot-test already exists and the bot is added to it
-                            logging.info("Trying to send message to general channel...")
-                            send_message_to_channel(client, SLACK_TOKEN, message_text)
+                            # We are assuming #alert-bot-test already exists and the bot is added to it
+                            send_message_to_channel(client, SLACK_TOKEN, general_channel, message_text)
 
-                            # This is a message with buttons and stuff to the new channel
-                            logging.info(f"Trying to send message to {event_channel} channel...")
+                            # This is a message sent to the new channel
                             send_message_to_channel(client, SLACK_TOKEN, event_channel, message_text)
 
                         except KeyError:
 
                             logging.warning('Bad data formatting...skipping message')
                             
-
                     # RETRACTION
                     else: 
-
-                        logging.info(f"Trying to send message to {event_channel} channel...")
+                        
                         send_message_to_channel(client, SLACK_TOKEN, event_channel, retraction_message)
 
 
