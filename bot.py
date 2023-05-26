@@ -52,13 +52,13 @@ if __name__ == '__main__':
                             ########
                             
                             # This creates a new slack channel for the alert
-                            create_new_channel(client, SLACK_TOKEN, event_channel)
+                            create_new_channel(client, event_channel)
 
-                            # We are assuming #alert-bot-test already exists and the bot is added to it
-                            send_message_to_channel(client, SLACK_TOKEN, general_channel, message_text)
+                            # We are assuming #bot-alerts already exists and the bot is added to it
+                            send_message_to_channel(client, general_channel, message_text)
 
-                            # This is a message sent to the new channel
-                            send_message_to_channel(client, SLACK_TOKEN, event_channel, message_text)
+                            # This is sending a message sent to the new channel
+                            send_message_to_channel(client, event_channel, message_text)
 
                         except KeyError:
 
