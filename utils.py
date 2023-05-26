@@ -34,7 +34,7 @@ def create_new_channel(client, channel_name):
 
     Args:
         client (slack WebClient): This client will be used to create the channel. Should be authenticated with the token.
-        channel_name (string): Name of the channel that needs to be created. 
+        channel_name (string): Name of the channel that needs to be created without the #. 
     """
 
     logging.info(f"Trying to create a new channel: {channel_name}...")

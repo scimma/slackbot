@@ -47,7 +47,7 @@ if __name__ == '__main__':
                             message_text = alert.get_GCW_detailed_message
                             retraction_message = alert.get_GCW_retraction_message
                             event_channel = alert.slack_channel
-                            general_channel = "#bot-alerts"
+                            general_channel = "bot-alerts"
 
                             ########
                             
