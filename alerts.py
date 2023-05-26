@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 class Alert():
 
-    def __init__(self, instance, ignore_skymap = False):
+    def __init__(self, instance, ignore_skymap = True):
 
         # Parsing the incoming Kafka notice
         self.parse_instance(instance, ignore_skymap)
@@ -16,9 +16,10 @@ class Alert():
 
         self.num_instruments = len(self.instruments)
 
-    def parse_instance(self, instance, ignore_skymap = False):
+    def parse_instance(self, instance, ignore_skymap = True):
 
-        # Parsed according to the schema here: https://emfollow.docs.ligo.org/userguide/content.html#kafka-notice-gcn-scimma
+        # Parsed according to the schema here: 
+        # https://emfollow.docs.ligo.org/userguide/content.html#kafka-notice-gcn-scimma
         self.instance = instance
 
         self.alert_type = instance['alert_type']
@@ -92,8 +93,14 @@ class Alert():
         # TODO: Parse the external_coinc data...
 
     def passes_GCW_general_cut(self):
+        """
+        Cuts made before sending incoming alerts to the Gravity collective's alert bot slack channel.
 
-        if self.num_instruments >= 2 and (self.nsbh > 0 or self.bns > 0) and self.group == "CBC":
+        Returns:
+            bool: True if the alert passes the cut, false otherwise,
+        """
+
+        if self.num_instruments >= 2 and self.group == "CBC" and (self.nsbh > 0 or self.bns > 0):
             return True
         else:
             return False
@@ -104,6 +111,12 @@ class Alert():
         return message
 
     def get_GCW_detailed_message(self):
+        """
+        Message sent to the Gravity collective's alert bot slack channel.
+
+        Return:
+            string: String containing relevant information about the event.
+        """
 
         message_text = f"""
 Alert Type: {self.alert_type}
