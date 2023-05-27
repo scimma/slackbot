@@ -23,15 +23,18 @@ if __name__ == '__main__':
 
         for message in s:
             
-            # Schema for data available at https://emfollow.docs.ligo.org/userguide/content.html#kafka-notice-gcn-scimma
             data = message.content
 
-            # Data is a list that can (potentially) have more than 1 element? This is inconsistent with the alert schema
             for instance in data:
 
                 alert = Alert(instance)
 
-                if alert.is_real:
+                message_text = alert.get_GCW_detailed_message()
+                event_channel = alert.slack_channel
+                general_channel = "bot-alerts"
+
+                # Making sure the alert is real and passes the preliminary cuts
+                if alert.is_real and alert.passes_GCW_general_cut():
 
                     logging.info(f"=====\nIncoming alert of length {len(data)}:")
                     logging.info(f"{alert.alert_type}: {alert.superevent_id}")
@@ -44,10 +47,8 @@ if __name__ == '__main__':
 
                             # TODO:  Whatever processing you want. Make plots, run analysis, classify event, call other api's etc
 
-                            message_text = alert.get_GCW_detailed_message
-                            event_channel = alert.slack_channel
-                            general_channel = "bot-alerts"
-
+                            retraction_message = alert.get_GCW_retraction_message()
+                            
                             ########
                             
                             # This creates a new slack channel for the alert
@@ -66,7 +67,6 @@ if __name__ == '__main__':
                     # RETRACTION
                     else: 
                         
-                        retraction_message = alert.get_GCW_retraction_message
                         send_message_to_channel(client, event_channel, retraction_message)
 
 

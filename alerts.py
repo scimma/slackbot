@@ -14,7 +14,7 @@ class Alert():
         else:
             self.is_real = False
 
-    def parse_instance(self, instance, ignore_skymap = True):
+    def parse_instance(self, instance, ignore_skymap):
 
         # Parsed according to the schema here: 
         # https://emfollow.docs.ligo.org/userguide/content.html#kafka-notice-gcn-scimma
@@ -78,7 +78,7 @@ class Alert():
                 self.bbh = None
                 self.noise = None
 
-            # Disable if the fits file is not going to be used
+            # Enable if the fits file is not going to be used
             if ignore_skymap == False:
 
                 binary_data = instance['event']['skymap']

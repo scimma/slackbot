@@ -16,10 +16,12 @@ def send_message_to_channel(client, channel_name, text):
     try:
         response = client.chat_postMessage(
                                 channel=f"#{channel_name}",
-                                blocks = [  {"type": "section", 
-                                            "text": {
-                                                        "type": "mrkdwn", 
-                                                        "text": text
+                                text= channel_name,
+                                blocks =[  {
+                                                "type": "section", 
+                                                "text": {
+                                                            "type": "mrkdwn", 
+                                                            "text": text
                                                         }
                                             } 
                                         ]
@@ -40,7 +42,6 @@ def create_new_channel(client, channel_name):
     logging.info(f"Trying to create a new channel: {channel_name}...")
     try:
 
-        logging.info("Trying to create a new channel...")
         response = client.conversations_create(name=channel_name)
         logging.info("Done")
 
