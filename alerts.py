@@ -1,5 +1,8 @@
-import healpy as hp
 import matplotlib.pyplot as plt
+
+from io import BytesIO
+from astropy.table import Table
+from astropy.io import fits
 
 class Alert():
 
@@ -28,6 +31,32 @@ class Alert():
         self.slack_channel = self.superevent_id.lower()
         self.skymap_img_url = f"https://gracedb.ligo.org/apiweb/superevents/{self.superevent_id}/files/bayestar.png"
 
+        # Initialize all variables 
+        self.event_time = None
+        self.FAR = None
+        self.significant = None
+        self.instruments = None
+        self.num_instruments = None
+        self.search = None
+        self.group = None
+
+        self.pipeline = None
+
+        # Only available for Burst
+        self.duration = None
+        self.central_frequency = None
+
+        # Only available for CBC
+        self.has_ns = None
+        self.has_remnant = None
+        self.has_mass_gap = None
+
+        # Only available for CBC
+        self.bns = None
+        self.nsbh = None
+        self.bbh = None
+        self.noise = None
+
         if self.alert_type != "RETRACTION":
 
             self.is_retraction = False
@@ -43,10 +72,6 @@ class Alert():
             if self.group  == "CBC":
 
                 self.pipeline = instance['event']['pipeline']
-
-                # Only available for Burst
-                self.duration = None
-                self.central_frequency = None
 
                 # Only available for CBC
                 self.has_ns = instance['event']['properties']['HasNS']
@@ -67,25 +92,16 @@ class Alert():
                 self.duration = instance['event']['duration']
                 self.central_frequency = instance['event']['central_frequency']
 
-                # Only available for CBC
-                self.has_ns = None
-                self.has_remnant = None
-                self.has_mass_gap = None
-
-                # Only available for CBC
-                self.bns = None
-                self.nsbh = None
-                self.bbh = None
-                self.noise = None
 
             # Enable if the fits file is not going to be used
             if ignore_skymap == False:
 
                 binary_data = instance['event']['skymap']
-                skymap, skymap_header = hp.read_map(binary_data, h=True, verbose=False)
+
+                skymap = fits.open(BytesIO(binary_data))
+                print(skymap.info())
                 
-                self.skymap_header = dict(skymap_header)
-                self.skymap = skymap
+
         else: 
             self.is_retraction = True
 
@@ -117,7 +133,7 @@ class Alert():
             string: String containing relevant information about the event.
         """
 
-        message_text = f"""
+        message = f"""
 Alert Type: {self.alert_type}
 Superevent ID: {self.superevent_id}
 Event Time: {self.event_time} 
@@ -133,7 +149,7 @@ Has Mass Gap: {self.has_mass_gap:.3f}
 Join related channel: #{self.slack_channel} 
 Skymap image: {self.skymap_img_url}
         """
-        return message_text
+        return message
     
     
 if __name__=="__main__":

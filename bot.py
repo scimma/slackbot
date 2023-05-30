@@ -27,7 +27,7 @@ if __name__ == '__main__':
 
             for instance in data:
 
-                alert = Alert(instance)
+                alert = Alert(instance, ignore_skymap=False)
 
                 message_text = alert.get_GCW_detailed_message()
                 event_channel = alert.slack_channel
@@ -48,7 +48,7 @@ if __name__ == '__main__':
                             # TODO:  Whatever processing you want. Make plots, run analysis, classify event, call other api's etc
 
                             retraction_message = alert.get_GCW_retraction_message()
-                            
+
                             ########
                             
                             # This creates a new slack channel for the alert
