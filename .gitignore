@@ -3,3 +3,4 @@ test.py
 __pycache__/
 .DS_Store
 auth.toml
+04_alerts.db

@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import logging
 
 from io import BytesIO
 from astropy.table import Table
@@ -11,7 +12,7 @@ class Alert():
         # Parsing the incoming Kafka notice
         self.parse_instance(instance, ignore_skymap)
 
-        # Events starting with S are real and MS are fake/test.
+        # Events starting with S are real and MS/TS are mock/test.
         if self.superevent_id[0] == 'S':
             self.is_real = True
         else:
@@ -106,6 +107,28 @@ class Alert():
             self.is_retraction = True
 
         # TODO: Parse the external_coinc data...
+
+    def add_to_db(self, cur):
+
+        logging.info("Adding alerts to the database...")
+        cur.execute(f"INSERT INTO alerts \
+                    VALUES ({self.superevent_id}, {self.alert_type}, {self.event_time})")
+        logging.info("Done.")
+        
+    def already_sent_to_slack(self, cur):
+
+        res = cur.execute(f"SELECT * \
+                          FROM alerts \
+                          WHERE superevent_id={self.superevent_id} AND type={self.alert_type} AND event_time={self.event_time}\
+                          ")
+        nrows = len(res)
+
+        if nrows == 0:
+            return False
+        elif nrows == 1:
+            return True
+        else:
+            logging.warning("This really, really should not have happened.")
 
     def passes_GCW_general_cut(self):
         """

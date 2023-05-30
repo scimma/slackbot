@@ -1,4 +1,5 @@
 import logging
+import sqlite3
 
 from hop import stream, Stream
 from hop.io import StartPosition
@@ -11,6 +12,7 @@ from utils import create_new_channel, send_message_to_channel
 
 logging.getLogger().setLevel(logging.INFO)
 
+# Auth for hop
 auth = Auth(hop_username, hop_pw)
 stream = Stream(auth=auth)
 
@@ -19,7 +21,13 @@ if __name__ == '__main__':
     with stream.open("kafka://kafka.scimma.org/igwn.gwalert", "r") as s:
 
         logging.info("Hop Skotch stream open. Creating Slack client...")
+
+        # Connecting to the slack client for api calls
         client = WebClient(token=SLACK_TOKEN)
+
+        # Connecting to local DB to prevent duplicate alerts
+        con = sqlite3.connect("04_alerts.db")
+        cur = con.cursor()
 
         for message in s:
             
@@ -30,6 +38,7 @@ if __name__ == '__main__':
                 alert = Alert(instance, ignore_skymap=False)
 
                 message_text = alert.get_GCW_detailed_message()
+                retraction_message = alert.get_GCW_retraction_message()
                 event_channel = alert.slack_channel
                 general_channel = "bot-alerts"
 
@@ -46,8 +55,6 @@ if __name__ == '__main__':
                             ########
 
                             # TODO:  Whatever processing you want. Make plots, run analysis, classify event, call other api's etc
-
-                            retraction_message = alert.get_GCW_retraction_message()
 
                             ########
                             
