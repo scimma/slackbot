@@ -110,12 +110,16 @@ class Alert():
 
     def add_to_db(self, cur):
 
-        logging.info("Adding alerts to the database...")
+        logging.info("Adding alert to the database...")
         cur.execute(f"INSERT INTO alerts \
                     VALUES ({self.superevent_id}, {self.alert_type}, {self.event_time})")
         logging.info("Done.")
-        
+
     def already_sent_to_slack(self, cur):
+
+        # There can be multiple updates and as far as I can tell, there is no way of making sure they are unique
+        if self.alert_type == "UPDATE":
+            return False
 
         res = cur.execute(f"SELECT * \
                           FROM alerts \
@@ -124,11 +128,13 @@ class Alert():
         nrows = len(res)
 
         if nrows == 0:
+            logging.info("Alert was not already sent to slack. Ready to send...")
             return False
         elif nrows == 1:
+            logging.info("Alert was already sent to slack. Not resending it...")
             return True
         else:
-            logging.warning("This really, really should not have happened.")
+            logging.warning("UNREACHABLE STATE FOR DB: This really, really should not have happened.")
 
     def passes_GCW_general_cut(self):
         """

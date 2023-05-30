@@ -10,6 +10,8 @@ from alerts import Alert
 from slack_token import SLACK_TOKEN, hop_username, hop_pw
 from utils import create_new_channel, send_message_to_channel
 
+DB_path = "04_alerts.db"
+
 logging.getLogger().setLevel(logging.INFO)
 
 # Auth for hop
@@ -26,7 +28,7 @@ if __name__ == '__main__':
         client = WebClient(token=SLACK_TOKEN)
 
         # Connecting to local DB to prevent duplicate alerts
-        con = sqlite3.connect("04_alerts.db")
+        con = sqlite3.connect(DB_path)
         cur = con.cursor()
 
         for message in s:
@@ -42,8 +44,9 @@ if __name__ == '__main__':
                 event_channel = alert.slack_channel
                 general_channel = "bot-alerts"
 
-                # Making sure the alert is real and passes the preliminary cuts
-                if alert.is_real and alert.passes_GCW_general_cut():
+                # Making sure the alert is real and passes the preliminary cuts and was not already sent to slack.
+                if alert.is_real and alert.passes_GCW_general_cut() and not alert.already_sent_to_slack(cur):
+
 
                     logging.info(f"=====\nIncoming alert of length {len(data)}:")
                     logging.info(f"{alert.alert_type}: {alert.superevent_id}")
@@ -76,5 +79,9 @@ if __name__ == '__main__':
                         
                         send_message_to_channel(client, event_channel, retraction_message)
 
+                if alert.already_sent_to_slack(cur) == False:
+
+                    # Adding alert to DB to prevent redundant messages
+                    alert.add_to_db(cur)
 
                     
