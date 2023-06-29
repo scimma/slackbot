@@ -79,9 +79,5 @@ if __name__ == '__main__':
                         
                         send_message_to_channel(client, event_channel, retraction_message)
 
-                if alert.already_sent_to_slack(cur) == False:
-
-                    # Adding alert to DB to prevent redundant messages
-                    alert.add_to_db(cur)
 
                     

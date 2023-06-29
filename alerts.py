@@ -100,41 +100,12 @@ class Alert():
                 binary_data = instance['event']['skymap']
 
                 skymap = fits.open(BytesIO(binary_data))
-                print(skymap.info())
+                print(skymap[0].data)
                 
 
         else: 
             self.is_retraction = True
 
-        # TODO: Parse the external_coinc data...
-
-    def add_to_db(self, cur):
-
-        logging.info("Adding alert to the database...")
-        cur.execute(f"INSERT INTO alerts \
-                    VALUES ({self.superevent_id}, {self.alert_type}, {self.event_time})")
-        logging.info("Done.")
-
-    def already_sent_to_slack(self, cur):
-
-        # There can be multiple updates and as far as I can tell, there is no way of making sure they are unique
-        if self.alert_type == "UPDATE":
-            return False
-
-        res = cur.execute(f"SELECT * \
-                          FROM alerts \
-                          WHERE superevent_id={self.superevent_id} AND type={self.alert_type} AND event_time={self.event_time}\
-                          ")
-        nrows = len(res)
-
-        if nrows == 0:
-            logging.info("Alert was not already sent to slack. Ready to send...")
-            return False
-        elif nrows == 1:
-            logging.info("Alert was already sent to slack. Not resending it...")
-            return True
-        else:
-            logging.warning("UNREACHABLE STATE FOR DB: This really, really should not have happened.")
 
     def passes_GCW_general_cut(self):
         """
@@ -144,7 +115,7 @@ class Alert():
             bool: True if the alert passes the cut, false otherwise,
         """
 
-        if self.num_instruments >= 2 and self.group == "CBC" and (self.nsbh > 0 or self.bns > 0):
+        if self.num_instruments >= 2 and self.group == "CBC" and (self.nsbh > 0.3 or self.bns > 0.3) and self.significant:
             return True
         else:
             return False
@@ -172,10 +143,12 @@ Detectors: {self.instruments}
 BNS: {self.bns:.3f}
 NSBH: {self.nsbh:.3f} 
 BBH: {self.bbh:.3f} 
+Terrestrial : {self.noise:.3f}
 Has NS: {self.has_ns:.3f}
 Has Remnant: {self.has_remnant:.3f}
 Has Mass Gap: {self.has_mass_gap:.3f}
 Join related channel: #{self.slack_channel} 
+Grace DB: {self.gracedb_url}
 Skymap image: {self.skymap_img_url}
         """
         return message
