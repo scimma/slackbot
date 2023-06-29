@@ -1,5 +1,4 @@
 import logging
-import sqlite3
 
 from hop import stream, Stream
 from hop.io import StartPosition
@@ -9,8 +8,6 @@ from slack import WebClient
 from alerts import Alert
 from slack_token import SLACK_TOKEN, hop_username, hop_pw
 from utils import create_new_channel, send_message_to_channel
-
-DB_path = "04_alerts.db"
 
 logging.getLogger().setLevel(logging.INFO)
 
@@ -27,10 +24,6 @@ if __name__ == '__main__':
         # Connecting to the slack client for api calls
         client = WebClient(token=SLACK_TOKEN)
 
-        # Connecting to local DB to prevent duplicate alerts
-        con = sqlite3.connect(DB_path)
-        cur = con.cursor()
-
         for message in s:
             
             data = message.content
@@ -39,19 +32,20 @@ if __name__ == '__main__':
 
                 alert = Alert(instance, ignore_skymap=False)
 
-                message_text = alert.get_GCW_detailed_message()
-                retraction_message = alert.get_GCW_retraction_message()
                 event_channel = alert.slack_channel
                 general_channel = "bot-alerts"
+                cuts_channel = "bot-alerts-good"
 
                 # Making sure the alert is real and passes the preliminary cuts and was not already sent to slack.
-                if alert.is_real and alert.passes_GCW_general_cut() and not alert.already_sent_to_slack(cur):
+                if alert.is_real and alert.group == 'CBC':
 
 
                     logging.info(f"=====\nIncoming alert of length {len(data)}:")
                     logging.info(f"{alert.alert_type}: {alert.superevent_id}")
 
                     if not alert.is_retraction:
+                        
+                        message_text = alert.get_GCW_detailed_message()
 
                         try:
                             
@@ -70,13 +64,18 @@ if __name__ == '__main__':
                             # This is sending a message sent to the new channel
                             send_message_to_channel(client, event_channel, message_text)
 
+                            # Send message to high quality event channel
+                            if alert.passes_GCW_general_cut():
+                                send_message_to_channel(client, cuts_channel, message_text)
+
                         except KeyError:
 
                             logging.warning('Bad data formatting...skipping message')
                             
                     # RETRACTION
                     else: 
-                        
+
+                        retraction_message = alert.get_GCW_retraction_message()
                         send_message_to_channel(client, event_channel, retraction_message)
 
 

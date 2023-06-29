@@ -4,10 +4,12 @@ import logging
 from io import BytesIO
 from astropy.table import Table
 from astropy.io import fits
+from astropy.coordinates import Distance
+from astropy import units as u
 
 class Alert():
 
-    def __init__(self, instance, ignore_skymap = True):
+    def __init__(self, instance, ignore_skymap = False):
 
         # Parsing the incoming Kafka notice
         self.parse_instance(instance, ignore_skymap)
@@ -42,6 +44,7 @@ class Alert():
         self.group = None
 
         self.pipeline = None
+        self.FAR_per_year = None
 
         # Only available for Burst
         self.duration = None
@@ -58,6 +61,10 @@ class Alert():
         self.bbh = None
         self.noise = None
 
+        self.dist_mean = None
+        self.dist_std = None
+        self.dist_modulus = None
+
         if self.alert_type != "RETRACTION":
 
             self.is_retraction = False
@@ -69,6 +76,9 @@ class Alert():
             self.num_instruments = len(self.instruments)
             self.search = instance['event']['search']
             self.group = instance['event']['group']
+
+            # Converting FAR to years
+            self.FAR_per_year = (self.FAR * u.Hz).to(1/u.year).value
 
             if self.group  == "CBC":
 
@@ -100,7 +110,21 @@ class Alert():
                 binary_data = instance['event']['skymap']
 
                 skymap = fits.open(BytesIO(binary_data))
-                print(skymap[0].data)
+
+                try:
+                    # Get distance values from skymap
+                    self.dist_mean = skymap[1].header['DISTMEAN']
+                    self.dist_std = skymap[1].header['DISTSTD']
+
+                    # Compute distance modulus 
+                    self.dist_modulus = Distance(self.dist_mean * u.Mpc).distmod.value
+
+                except:
+
+                    # Flag for something going wrong
+                    self.dist_mean = -1
+                    self.dist_std = -1
+                    self.dist_modulus = -1          
                 
 
         else: 
@@ -135,18 +159,22 @@ class Alert():
 
         message = f"""
 Alert Type: {self.alert_type}
-Superevent ID: {self.superevent_id}
+Superevent ID: {self.superevent_id}\n
 Event Time: {self.event_time} 
 Alert Time: {self.time_created}
-FAR: {self.FAR} 
-Detectors: {self.instruments} 
+FAR [yr^-1]: {self.FAR_per_year} 
+Detectors: {self.instruments}\n 
 BNS: {self.bns:.3f}
 NSBH: {self.nsbh:.3f} 
 BBH: {self.bbh:.3f} 
-Terrestrial : {self.noise:.3f}
+Terrestrial : {self.noise:.3f}\n
 Has NS: {self.has_ns:.3f}
 Has Remnant: {self.has_remnant:.3f}
-Has Mass Gap: {self.has_mass_gap:.3f}
+Has Mass Gap: {self.has_mass_gap:.3f}\n
+Distance (Mean): {self.dist_mean:.3f} Mpc
+Distance (Std): {self.dist_std:.3f} Mpc
+Distance modulus: {self.dist_modulus:.3f}\n
+===========================
 Join related channel: #{self.slack_channel} 
 Grace DB: {self.gracedb_url}
 Skymap image: {self.skymap_img_url}
@@ -156,29 +184,87 @@ Skymap image: {self.skymap_img_url}
     
 if __name__=="__main__":
 
-    from slack_token import SLACK_TOKEN, hop_username, hop_pw
+
+    import logging
+
     from hop import stream, Stream
     from hop.io import StartPosition
     from hop.auth import Auth
+    from slack import WebClient
 
-    # You might have to authorize here
-    ## auth = Auth(hop_username, hop_pw)
-    stream = Stream()
+    from alerts import Alert
+    from slack_token import SLACK_TOKEN, hop_username, hop_pw
+    from utils import create_new_channel, send_message_to_channel
+
+    logging.getLogger().setLevel(logging.INFO)
+
+    # Auth for hop
+    auth = Auth(hop_username, hop_pw)
+
+    #stream = Stream(auth=auth)
+    stream = Stream(auth=auth, start_at=StartPosition.EARLIEST)
 
     with stream.open("kafka://kafka.scimma.org/igwn.gwalert", "r") as s:
 
+        logging.info("Hop Skotch stream open. Creating Slack client...")
+
+        # Connecting to the slack client for api calls
+        client = WebClient(token=SLACK_TOKEN)
+
         for message in s:
             
-            # Schema for data available at https://emfollow.docs.ligo.org/userguide/content.html#kafka-notice-gcn-scimma
             data = message.content
 
-            # Data is a list that can (potentially) have more than 1 element? This is inconsistent with the alert schema
             for instance in data:
-                
-                temp = Alert(instance, ignore_skymap=True)
-                print(temp.instance)
-                # print(temp.skymap_header)
-                # hp.mollview(temp.skymap)
-                # plt.show()
+
+                alert = Alert(instance, ignore_skymap=False)
+
+                event_channel = alert.slack_channel
+                general_channel = "bot-alerts"
+                cuts_channel = "bot-alerts-good"
+
+                if alert.is_real and alert.group == 'CBC':
+
+                    logging.info(f"=====\nIncoming alert of length {len(data)}:")
+                    logging.info(f"{alert.alert_type}: {alert.superevent_id}")
+
+                    if not alert.is_retraction:
+                        
+                        message_text = alert.get_GCW_detailed_message()
+
+                        try:
+                            
+                            ########
+
+                            # TODO:  Whatever processing you want. Make plots, run analysis, classify event, call other api's etc
+
+                            ########
+                            
+                            # This creates a new slack channel for the alert
+                            create_new_channel(client, event_channel)
+
+                            # We are assuming #bot-alerts already exists and the bot is added to it
+                            send_message_to_channel(client, general_channel, message_text)
+
+                            # This is sending a message sent to the new channel
+                            send_message_to_channel(client, event_channel, message_text)
+
+                            # Send message to high quality event channel
+                            if alert.passes_GCW_general_cut():
+                                send_message_to_channel(client, cuts_channel, message_text)
+
+                        except KeyError:
+
+                            logging.warning('Bad data formatting...skipping message')
+                            
+                    # RETRACTION
+                    else: 
+                        
+                        retraction_message = alert.get_GCW_retraction_message()
+                        send_message_to_channel(client, event_channel, retraction_message)
+
+
+                    
+
 
 
