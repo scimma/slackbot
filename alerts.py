@@ -25,6 +25,7 @@ class Alert():
         # Parsed according to the schema here: 
         # https://emfollow.docs.ligo.org/userguide/content.html#kafka-notice-gcn-scimma
         self.instance = instance
+        self.slack_bot_link = "https://github.com/scimma/slackbot"
 
         self.alert_type = instance['alert_type']
         self.superevent_id = instance['superevent_id']
@@ -32,7 +33,6 @@ class Alert():
         self.gracedb_url = instance['urls']['gracedb']
 
         self.slack_channel = self.superevent_id.lower()
-        self.skymap_img_url = f"https://gracedb.ligo.org/apiweb/superevents/{self.superevent_id}/files/bayestar.png"
 
         # Initialize all variables 
         self.event_time = None
@@ -83,6 +83,7 @@ class Alert():
             if self.group  == "CBC":
 
                 self.pipeline = instance['event']['pipeline']
+                self.skymap_img_url = f"https://gracedb.ligo.org/apiweb/superevents/{self.superevent_id}/files/bayestar.png"
 
                 # Only available for CBC
                 self.has_ns = instance['event']['properties']['HasNS']
@@ -98,6 +99,7 @@ class Alert():
             else:
 
                 self.pipeline = instance['event']['pipeline']
+                self.skymap_img_url = f"https://gracedb.ligo.org/apiweb/superevents/{self.superevent_id}/files/cwb.png" 
 
                 # Only available for Burst
                 self.duration = instance['event']['duration']
@@ -119,7 +121,7 @@ class Alert():
                     # Compute distance modulus 
                     self.dist_modulus = Distance(self.dist_mean * u.Mpc).distmod.value
 
-                except:
+                except KeyError:
 
                     # Flag for something going wrong
                     self.dist_mean = -1
@@ -139,7 +141,7 @@ class Alert():
             bool: True if the alert passes the cut, false otherwise,
         """
 
-        if self.num_instruments >= 2 and self.group == "CBC" and (self.nsbh > 0.3 or self.bns > 0.3) and self.significant:
+        if self.num_instruments >= 2 and (self.nsbh > 0.3 or self.bns > 0.3) and self.significant:
             return True
         else:
             return False
@@ -157,28 +159,51 @@ class Alert():
             string: String containing relevant information about the event.
         """
 
-        message = f"""
+        if self.group == "CBC":
+            message = f"""
 Alert Type: {self.alert_type}
-Superevent ID: {self.superevent_id}\n
+Superevent ID: {self.superevent_id}
+Group: {self.group}
+
 Event Time: {self.event_time} 
 Alert Time: {self.time_created}
-FAR [yr^-1]: {self.FAR_per_year} 
-Detectors: {self.instruments}\n 
+FAR [1/yr]: {self.FAR_per_year} 
+Detectors: {self.instruments}
+
+Terrestrial : {self.noise:.3f}
 BNS: {self.bns:.3f}
 NSBH: {self.nsbh:.3f} 
 BBH: {self.bbh:.3f} 
-Terrestrial : {self.noise:.3f}\n
+
 Has NS: {self.has_ns:.3f}
 Has Remnant: {self.has_remnant:.3f}
-Has Mass Gap: {self.has_mass_gap:.3f}\n
-Distance (Mean): {self.dist_mean:.3f} Mpc
-Distance (Std): {self.dist_std:.3f} Mpc
-Distance modulus: {self.dist_modulus:.3f}\n
-===========================
+Has Mass Gap: {self.has_mass_gap:.3f}
+
+Distance (Mean): {self.dist_mean:.3f} +/- {self.dist_std:.3f} Mpc
+Distance modulus: {self.dist_modulus:.3f}
+
+--------------------
 Join related channel: #{self.slack_channel} 
-Grace DB: {self.gracedb_url}
-Skymap image: {self.skymap_img_url}
-        """
+<{self.skymap_img_url}|Skymap Link> | <{self.gracedb_url}|Grace DB> | <{self.slack_bot_link}|Github>
+            """
+
+        else:
+
+            message = f"""
+Alert Type: {self.alert_type}
+Superevent ID: {self.superevent_id}
+Group: {self.group}
+
+Event Time: {self.event_time} 
+Alert Time: {self.time_created}
+FAR [1/yr]: {self.FAR_per_year} 
+Detectors: {self.instruments}
+
+--------------------
+Join related channel: #{self.slack_channel} 
+<{self.skymap_img_url}|Skymap Link> | <{self.gracedb_url}|Grace DB> | <{self.slack_bot_link}|Github>
+            """
+
         return message
     
     
@@ -216,55 +241,60 @@ if __name__=="__main__":
             data = message.content
 
             for instance in data:
-
-                alert = Alert(instance, ignore_skymap=False)
-
-                event_channel = alert.slack_channel
-                general_channel = "bot-alerts"
-                cuts_channel = "bot-alerts-good"
-
-                if alert.is_real and alert.group == 'CBC':
+                
+                # Only continue if the event is real.
+                if instance['superevent_id'][0] == 'S' or instance['superevent_id'][0] == 's':
 
                     logging.info(f"=====\nIncoming alert of length {len(data)}:")
-                    logging.info(f"{alert.alert_type}: {alert.superevent_id}")
+                    logging.info(f"{instance['alert_type']}: {instance['superevent_id']}")
 
-                    if not alert.is_retraction:
-                        
-                        message_text = alert.get_GCW_detailed_message()
+                    try:
+                                
 
-                        try:
-                            
-                            ########
+                        alert = Alert(instance, ignore_skymap=False)
 
-                            # TODO:  Whatever processing you want. Make plots, run analysis, classify event, call other api's etc
+                        event_channel = alert.slack_channel
+                        general_channel = "bot-alerts"
+                        cuts_channel = "bot-alerts-good"
 
-                            ########
-                            
-                            # This creates a new slack channel for the alert
-                            create_new_channel(client, event_channel)
+                        # Making sure the alert is real and passes the preliminary cuts and was not already sent to slack.
+                        if alert.is_real:
 
-                            # We are assuming #bot-alerts already exists and the bot is added to it
-                            send_message_to_channel(client, general_channel, message_text)
-
-                            # This is sending a message sent to the new channel
-                            send_message_to_channel(client, event_channel, message_text)
-
-                            # Send message to high quality event channel
-                            if alert.passes_GCW_general_cut():
-                                send_message_to_channel(client, cuts_channel, message_text)
-
-                        except KeyError:
-
-                            logging.warning('Bad data formatting...skipping message')
-                            
-                    # RETRACTION
-                    else: 
-                        
-                        retraction_message = alert.get_GCW_retraction_message()
-                        send_message_to_channel(client, event_channel, retraction_message)
+                            if not alert.is_retraction:
+                                
+                                message_text = alert.get_GCW_detailed_message()
 
 
-                    
+                                ########
+
+                                # TODO:  Whatever processing you want. Make plots, run analysis, classify event, call other api's etc
+
+                                ########
+                                
+                                # This creates a new slack channel for the alert
+                                create_new_channel(client, event_channel)
+
+                                # We are assuming #bot-alerts already exists and the bot is added to it
+                                send_message_to_channel(client, general_channel, message_text)
+
+                                # This is sending a message sent to the new channel
+                                send_message_to_channel(client, event_channel, message_text)
+
+                                # Send message to high quality event channel
+                                if alert.passes_GCW_general_cut():
+                                    send_message_to_channel(client, cuts_channel, message_text)
+
+
+                                    
+                            # RETRACTION
+                            else: 
+
+                                retraction_message = alert.get_GCW_retraction_message()
+                                send_message_to_channel(client, event_channel, retraction_message)
+
+                    except:
+
+                        logging.warning('Bad data formatting...skipping message')                    
 
 
 
