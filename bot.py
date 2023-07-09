@@ -48,7 +48,7 @@ if __name__ == '__main__':
                         # Making sure the alert is real and passes the preliminary cuts and was not already sent to slack.
                         if alert.is_real:
 
-                            if not alert.is_retraction:
+                            if alert.is_retraction == False:
                                 
                                 message_text = alert.get_GCW_detailed_message()
 
@@ -80,9 +80,13 @@ if __name__ == '__main__':
                                 retraction_message = alert.get_GCW_retraction_message()
                                 send_message_to_channel(client, event_channel, retraction_message)
 
+                    except KeyError:
+
+                        logging.warning('Bad data formatting...skipping message')    
+
                     except:
 
-                        logging.warning('Bad data formatting...skipping message')      
+                        logging  
 
 
                     

@@ -12,6 +12,7 @@ class Alert():
     def __init__(self, instance, ignore_skymap = False):
 
         # Parsing the incoming Kafka notice
+        self.instance = instance
         self.parse_instance(instance, ignore_skymap)
 
         # Events starting with S are real and MS/TS are mock/test.
@@ -141,8 +142,12 @@ class Alert():
             bool: True if the alert passes the cut, false otherwise,
         """
 
-        if self.num_instruments >= 2 and (self.nsbh > 0.3 or self.bns > 0.3) and self.significant:
+        if self.group == "CBC" and self.num_instruments >= 2 and (self.nsbh > 0.3 or self.bns > 0.3) and self.significant:
             return True
+        
+        elif self.group == "Burst" and self.num_instruments >= 2 and self.significant:
+            return True
+        
         else:
             return False
     
@@ -260,7 +265,7 @@ if __name__=="__main__":
                         # Making sure the alert is real and passes the preliminary cuts and was not already sent to slack.
                         if alert.is_real:
 
-                            if not alert.is_retraction:
+                            if alert.is_retraction == False:
                                 
                                 message_text = alert.get_GCW_detailed_message()
 
@@ -292,7 +297,7 @@ if __name__=="__main__":
                                 retraction_message = alert.get_GCW_retraction_message()
                                 send_message_to_channel(client, event_channel, retraction_message)
 
-                    except:
+                    except KeyError:
 
                         logging.warning('Bad data formatting...skipping message')                    
 
