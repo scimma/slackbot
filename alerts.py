@@ -1,8 +1,6 @@
-import matplotlib.pyplot as plt
 import logging
 
 from io import BytesIO
-from astropy.table import Table
 from astropy.io import fits
 from astropy.coordinates import Distance
 from astropy import units as u
