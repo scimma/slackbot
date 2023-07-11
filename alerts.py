@@ -297,7 +297,12 @@ if __name__=="__main__":
 
                     except KeyError:
 
-                        logging.warning('Bad data formatting...skipping message')                    
+                        logging.warning('Bad data formatting...skipping message')
+
+                    except Exception as e:
+
+                        logging.warning('Something went wrong...')   
+                        logging.warning(e)                 
 
 
 

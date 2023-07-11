@@ -84,9 +84,10 @@ if __name__ == '__main__':
 
                         logging.warning('Bad data formatting...skipping message')    
 
-                    except:
+                    except Exception as e:
 
-                        logging  
+                        logging.warning('Something went wrong...')   
+                        logging.warning(e)       
 
 
                     
