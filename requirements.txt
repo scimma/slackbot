@@ -1,3 +1,4 @@
 hop-client         == 0.8.0
 slack-sdk          == 3.21.1
 aiohttp
+astropy

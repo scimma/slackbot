@@ -2,9 +2,13 @@
 
 Slack alert bot for `LIGO 04` gravitational wave alerts via Scimma's Hopskotch. 
 
-If you intend on using this bot within the Gravity collective workspace and are looking for feature requests, please open  a new issue. 
+If you intend on using this bot within the Gravity collective workspace and are looking for feature requests, please open a new issue. 
 
-If you are are looking to set up the alert bot within your own workspace, follow the instructions below.
+If you are are looking to set up the alert bot within your own workspace, follow the instructions below. 
+
+Specifically, `alerts.py` should give you all of the information from JSON, decomposed as a python object - this is supposed to serve as the starting point for further configuration. I have added the functions used for the Gravity collectives update criteria to this file.
+
+Further, `utils.py` has some useful helper function to help with slack functionality.
 
 ## 1. Getting started in your own workspace:
 
@@ -62,11 +66,22 @@ For monitoring, use:
 
 ## Known Issues:
 
-* [CURRENTLY DISABLED] Archiving channels after a retraction is very slow right now and will get slower as the number of channels in a workspace increases (due to linear search). Slack does not currently have api's (that I could find) that can do this efficiently (O(1)) so we might have to build something on our own. Once again, this depends on having relatively consistent data formatting (like `PRELIMINARY` alerts for any `superevent id` coming in before `RETRACTION` alerts). We hope to iron this out during the engineering run.
+* DUPLICATES !!!
+
+HOPSKOTCH allows for “at least once” delivery semantics [https://scimma.org/hopskotch.html]. While this is great for not missing alerts, our bot send a message for every alert it receives leading to duplicates. Solving that would be too easy so Slack has its own bug to complicate matters [https://github.com/slackapi/bolt-python/issues/764]. I am going to try to address this issues ASAP since it is cluttering the channel with unnecessary messages.
+
+* [CURRENTLY DISABLED] ARCHIVING CHANNELS
+
+Archiving channels after a retraction is very slow right now and will get slower as the number of channels in a workspace increases (due to linear search). Slack does not currently have api's (that I could find) that can do this efficiently (O(1)) so we might have to build something on our own. Once again, this depends on having relatively consistent data formatting (like `PRELIMINARY` alerts for any `superevent id` coming in before `RETRACTION` alerts). 
+For now, I am just sending the RETRACTION alerts to the respective channels.
+
+Current method -> get list of all channels -> find id for channel name -> call archive function
+Issue - Linear time operation in the number for channels in the workspace. We wan to avoid this. I do not have a good solution yet. One possible idea is to store a hash map from super event id to channel id on our end but that does not work with dummy alerts. It might work engineering run onwards. 
+
 
 ## Contributing:
 
-Almost all of the code here was written in under 10 hours so there is a lot of work that can be done to improve different aspects of this project. If you want to help, please start by opening a pull request.
+If you want to help, please start by opening a pull request. The alerts class should be flexible enough to allow for extensive configuration. 
 
 ## Acknowledgements:
 
