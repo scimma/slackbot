@@ -140,7 +140,7 @@ class Alert():
             bool: True if the alert passes the cut, false otherwise,
         """
 
-        if self.group == "CBC" and self.num_instruments >= 2 and (self.nsbh > 0.3 or self.bns > 0.3) and self.significant:
+        if self.group == "CBC" and self.num_instruments >= 2 and (self.nsbh > 0.3 or self.bns > 0.3 or self.has_remnant > 0.1) and self.significant:
             return True
         
         elif self.group == "Burst" and self.num_instruments >= 2 and self.significant:
