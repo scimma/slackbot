@@ -187,7 +187,7 @@ Distance modulus: {self.dist_modulus:.3f}
 
 --------------------
 Join related channel: #{self.slack_channel} 
-<{self.skymap_img_url}|Skymap Link> | <{self.gracedb_url}|Grace DB> | <{self.slack_bot_link}|Github>
+<{self.skymap_img_url}|Skymap Link> | <{self.gracedb_url}|Grace DB> 
             """
 
         else:
@@ -204,7 +204,7 @@ Detectors: {self.instruments}
 
 --------------------
 Join related channel: #{self.slack_channel} 
-<{self.skymap_img_url}|Skymap Link> | <{self.gracedb_url}|Grace DB> | <{self.slack_bot_link}|Github>
+<{self.skymap_img_url}|Skymap Link> | <{self.gracedb_url}|Grace DB> 
             """
 
         return message
