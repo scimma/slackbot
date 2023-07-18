@@ -38,7 +38,6 @@ if __name__ == '__main__':
 
                     try:
                                 
-
                         alert = Alert(instance, ignore_skymap=False)
 
                         event_channel = alert.slack_channel
@@ -58,27 +57,21 @@ if __name__ == '__main__':
                                 # TODO:  Whatever processing you want. Make plots, run analysis, classify event, call other api's etc
 
                                 ########
-                                
-                                # This creates a new slack channel for the alert
-                                create_new_channel(client, event_channel)
 
                                 # We are assuming #bot-alerts already exists and the bot is added to it
                                 send_message_to_channel(client, general_channel, message_text)
 
-                                # This is sending a message sent to the new channel
-                                send_message_to_channel(client, event_channel, message_text)
-
                                 # Send message to high quality event channel
                                 if alert.passes_GCW_general_cut():
                                     send_message_to_channel(client, cuts_channel, message_text)
-
 
                                     
                             # RETRACTION
                             else: 
 
                                 retraction_message = alert.get_GCW_retraction_message()
-                                send_message_to_channel(client, event_channel, retraction_message)
+                                send_message_to_channel(client, general_channel, retraction_message)
+                                send_message_to_channel(client, cuts_channel, retraction_message)
 
                     except KeyError:
 
