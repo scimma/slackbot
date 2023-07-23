@@ -44,6 +44,9 @@ if __name__ == '__main__':
                         event_channel = alert.slack_channel
                         general_channel = "bot-alerts"
                         cuts_channel = "bot-alerts-good"
+                        bbh_channel = "bot-alerts-bbh"
+                        bns_channel = "bot-alerts-bns"
+                        nsbh_channel = "bot-alerts-nsbh"
 
                         # Making sure the alert is real and passes the preliminary cuts and was not already sent to slack.
                         if alert.is_real:
@@ -71,6 +74,16 @@ if __name__ == '__main__':
                                 # Send message to high quality event channel
                                 if alert.passes_GCW_general_cut():
                                     send_message_to_channel(client, cuts_channel, message_text)
+
+                                # Send alerts to event specific channels
+                                if alert.passes_GCW_BBH_cut():
+                                    send_message_to_channel(client, bbh_channel, message_text)
+
+                                if alert.passes_GCW_BNS_cut():
+                                    send_message_to_channel(client, bns_channel, message_text)
+
+                                if alert.passes_GCW_NSBH_cut():
+                                    send_message_to_channel(client, nsbh_channel, message_text)
 
 
                                     
