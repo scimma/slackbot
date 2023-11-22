@@ -10,6 +10,29 @@ Specifically, `alerts.py` should give you all of the information from JSON, deco
 
 Further, `utils.py` has some useful helper function to help with slack functionality.
 
+# Citation
+
+If you use the this utility for any of your work, please cite the corresponding paper. Citation details can be found below or in citation.bib
+
+```
+@ARTICLE{2023arXiv231015240S,
+       author = {{Shah}, Ved G. and {Narayan}, Gautham and {Perkins}, Haille M.~L. and {Foley}, Ryan J. and {Chatterjee}, Deep and {Cousins}, Bryce and {Macias}, Phillip},
+        title = "{Predictions for Electromagnetic Counterparts to Neutron Star Mergers Discovered during LIGO-Virgo-KAGRA Observing Runs 4 and 5}",
+      journal = {arXiv e-prints},
+     keywords = {Astrophysics - High Energy Astrophysical Phenomena, Astrophysics - Instrumentation and Methods for Astrophysics},
+         year = 2023,
+        month = oct,
+          eid = {arXiv:2310.15240},
+        pages = {arXiv:2310.15240},
+          doi = {10.48550/arXiv.2310.15240},
+archivePrefix = {arXiv},
+       eprint = {2310.15240},
+ primaryClass = {astro-ph.HE},
+       adsurl = {https://ui.adsabs.harvard.edu/abs/2023arXiv231015240S},
+      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+}
+```
+
 ## 1. Getting started in your own workspace:
 
 ### 1.1 Set up Hopskotch listener
